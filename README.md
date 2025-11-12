@@ -135,4 +135,5 @@ python -m pytest tests/
 
 ## License
 
-MIT
+I built this, from scratch :D
+Unlicensed
