@@ -1,15 +1,5 @@
 class Device:
-    """Base class for network devices."""
-    
     def __init__(self, name, device_type, **kwargs):
-        """
-        Initialize a network device.
-        
-        Args:
-            name (str): Unique identifier for the device
-            device_type (str): Type of device (e.g., 'router', 'switch', 'host')
-            **kwargs: Additional device-specific attributes
-        """
         self.name = name
         self.device_type = device_type
         self.interfaces = {}

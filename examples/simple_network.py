@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Simple Network Topology Example
+Enhanced Network Topology Example with IP Addressing
 """
 import os
 import sys
@@ -13,61 +13,105 @@ from network_simulator.network import NetworkTopology
 from network_simulator.device import Router, Switch, Host
 
 def create_simple_network():
-    """Create a simple network topology with 2 routers, 2 switches, and 4 hosts."""
+    """
+    Create a network topology with 2 routers, 2 switches, and 4 hosts.
+    Implements IP addressing with proper subnetting.
+    """
     # Create a new network
-    network = NetworkTopology("Simple Enterprise Network")
+    network = NetworkTopology("Enterprise Network with IP Addressing")
     
-    # Create devices
-    # Routers
+    # ===== Create Devices =====
+    # Routers (Layer 3 devices)
     router1 = Router("R1")
     router2 = Router("R2")
     
-    # Switches
+    # Switches (Layer 2 devices)
     switch1 = Switch("SW1")
     switch2 = Switch("SW2")
     
-    # Hosts
+    # End Devices
     pc1 = Host("PC1")
     pc2 = Host("PC2")
-    server1 = Host("Server1")
-    server2 = Host("Server2")
+    server1 = Host("WebServer")
+    server2 = Host("DBServer")
     
-    # Add devices to the network
+    # Add all devices to the network
     for device in [router1, router2, switch1, switch2, pc1, pc2, server1, server2]:
         network.add_device(device)
     
-    # Connect devices
-    # Router to router connection
-    network.connect_devices("R1", "eth0", "R2", "eth0", bandwidth=1000)  # 1Gbps link
+    # ===== Network Segments =====
+    # - 192.168.1.0/24: R1's LAN (PC1, PC2)
+    # - 192.168.2.0/24: R2's LAN (WebServer, DBServer)
+    # - 10.0.0.0/30: Point-to-point link between R1 and R2
     
-    # Connect routers to switches
-    network.connect_devices("R1", "eth1", "SW1", "eth0", bandwidth=1000)
-    network.connect_devices("R2", "eth1", "SW2", "eth0", bandwidth=1000)
+    # ===== Connect Devices =====
+    # 1. Connect R1 and R2 (WAN link)
+    network.connect_devices(
+        "R1", "eth0", 
+        "R2", "eth0", 
+        bandwidth=1000,  # 1Gbps link
+        description="WAN Link"
+    )
     
-    # Connect hosts to switches
-    network.connect_devices("SW1", "eth1", "PC1", "eth0", bandwidth=100)
-    network.connect_devices("SW1", "eth2", "PC2", "eth0", bandwidth=100)
-    network.connect_devices("SW2", "eth1", "Server1", "eth0", bandwidth=1000)
-    network.connect_devices("SW2", "eth2", "Server2", "eth0", bandwidth=1000)
+    # 2. Connect R1 to SW1 (LAN 1)
+    network.connect_devices(
+        "R1", "eth1", 
+        "SW1", "eth0", 
+        bandwidth=1000,
+        description="LAN 1 Uplink"
+    )
+    
+    # 3. Connect R2 to SW2 (LAN 2)
+    network.connect_devices(
+        "R2", "eth1", 
+        "SW2", "eth0", 
+        bandwidth=1000,
+        description="LAN 2 Uplink"
+    )
+    
+    # 4. Connect hosts to SW1 (LAN 1)
+    network.connect_devices(
+        "SW1", "eth1", 
+        "PC1", "eth0", 
+        bandwidth=100,
+        description="PC1 Connection"
+    )
+    
+    network.connect_devices(
+        "SW1", "eth2", 
+        "PC2", "eth0", 
+        bandwidth=100,
+        description="PC2 Connection"
+    )
+    
+    # 5. Connect servers to SW2 (LAN 2)
+    network.connect_devices(
+        "SW2", "eth1", 
+        "WebServer", "eth0", 
+        bandwidth=1000,
+        description="Web Server Connection"
+    )
+    
+    network.connect_devices(
+        "SW2", "eth2", 
+        "DBServer", "eth0", 
+        bandwidth=1000,
+        description="Database Server Connection"
+    )
     
     return network
 
 def main():
-    """Main function to demonstrate the network."""
-    # Create the network
     network = create_simple_network()
     
-    # Print network information
     print("Network created successfully!")
     print(f"{network}")
     print(f"Number of devices: {len(network.devices)}")
     print(f"Number of links: {network.graph.number_of_edges()}")
     
-    # Find a path between two hosts
-    path = network.get_shortest_path("PC1", "Server1")
-    print(f"\nPath from PC1 to Server1: {' -> '.join(path)}")
+    path = network.get_shortest_path("PC1", "WebServer")
+    print(f"\nPath from PC1 to WebServer: {' -> '.join(path)}")
     
-    # Visualize the network
     output_dir = Path("output")
     output_dir.mkdir(exist_ok=True)
     output_file = output_dir / "network_topology.png"
